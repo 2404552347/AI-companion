@@ -34,16 +34,16 @@ export default function LoginPage() {
         <Card className="border-border/60 p-6 card-elevated">
           <form action={formAction} className="space-y-4">
             <div className="space-y-2">
-              <label htmlFor="email" className="text-sm font-medium text-foreground">
-                邮箱
+              <label htmlFor="username" className="text-sm font-medium text-foreground">
+                账号
               </label>
               <Input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="hello@example.com"
+                id="username"
+                name="username"
+                type="text"
+                placeholder="你的账号名"
                 required
-                autoComplete="email"
+                autoComplete="username"
                 className="h-11"
               />
             </div>

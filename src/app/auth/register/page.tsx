@@ -34,6 +34,21 @@ export default function RegisterPage() {
         <Card className="border-border/60 p-6 card-elevated">
           <form action={formAction} className="space-y-4">
             <div className="space-y-2">
+              <label htmlFor="username" className="text-sm font-medium text-foreground">
+                账号
+              </label>
+              <Input
+                id="username"
+                name="username"
+                type="text"
+                placeholder="仅限英文、数字、下划线，3-20位"
+                required
+                className="h-11"
+                autoComplete="username"
+              />
+            </div>
+
+            <div className="space-y-2">
               <label htmlFor="nickname" className="text-sm font-medium text-foreground">
                 昵称
               </label>
@@ -48,21 +63,6 @@ export default function RegisterPage() {
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="email" className="text-sm font-medium text-foreground">
-                邮箱
-              </label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="hello@example.com"
-                required
-                autoComplete="email"
-                className="h-11"
-              />
-            </div>
-
-            <div className="space-y-2">
               <label htmlFor="password" className="text-sm font-medium text-foreground">
                 密码
               </label>
@@ -70,9 +70,9 @@ export default function RegisterPage() {
                 id="password"
                 name="password"
                 type="password"
-                placeholder="至少 8 位字符"
+                placeholder="至少 6 位字符"
                 required
-                minLength={8}
+                minLength={6}
                 autoComplete="new-password"
                 className="h-11"
               />
