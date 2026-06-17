@@ -136,5 +136,14 @@ export const DEMO_DATA = {
 }
 
 export function isDemoMode(): boolean {
-  return process.env.NEXT_PUBLIC_DEMO_MODE === 'true' || !process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL.includes('YOUR_PROJECT_ID')
+  // 显式关闭
+  if (process.env.NEXT_PUBLIC_DEMO_MODE === 'false') return false
+  // 显式开启
+  if (process.env.NEXT_PUBLIC_DEMO_MODE === 'true') return true
+  // 没有 Supabase URL → demo
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) return true
+  // 占位符 URL → demo
+  if (process.env.NEXT_PUBLIC_SUPABASE_URL.includes('YOUR_PROJECT_ID')) return true
+  // 有真实 Supabase → 正常模式
+  return false
 }
