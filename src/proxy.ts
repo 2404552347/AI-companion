@@ -3,9 +3,7 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 export async function proxy(request: NextRequest) {
-  // Demo mode: 没有真实 Supabase URL 时才启用
-  const hasSupabase = process.env.NEXT_PUBLIC_SUPABASE_URL?.includes('supabase.co')
-  const isDemo = !hasSupabase || process.env.NEXT_PUBLIC_DEMO_MODE === 'true'
+  const isDemo = process.env.NEXT_PUBLIC_DEMO_MODE === 'true'
 
   if (isDemo) {
     const response = NextResponse.next({ request })

@@ -136,10 +136,6 @@ export const DEMO_DATA = {
 }
 
 export function isDemoMode(): boolean {
-  // 有真实 Supabase URL → 正式模式
-  if (process.env.NEXT_PUBLIC_SUPABASE_URL?.includes('supabase.co')) return false
-  // 显式要求 demo
-  if (process.env.NEXT_PUBLIC_DEMO_MODE === 'true') return true
-  // 其他情况（无 URL、占位符）→ demo
-  return true
+  // 明确设置才进入 demo，否则永远走正式模式
+  return process.env.NEXT_PUBLIC_DEMO_MODE === 'true'
 }
