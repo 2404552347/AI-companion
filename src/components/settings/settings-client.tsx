@@ -16,7 +16,6 @@ import { Separator } from '@/components/ui/separator'
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog'
-import { signOut } from '@/lib/supabase/auth-actions'
 import { toast } from 'sonner'
 import type { Persona, UserProfile, UserSettings } from '@/types'
 
@@ -52,7 +51,13 @@ export function SettingsClient({ profile, settings, personas, activePersona }: P
 
   const handleSignOut = async () => {
     setIsSigningOut(true)
-    await signOut()
+    try {
+      await fetch('/api/v1/auth/signout', { method: 'POST' })
+    } catch {
+      // redirect throws, that's expected
+    }
+    router.push('/auth/login')
+    router.refresh()
   }
 
   const switchPersona = async (persona: Persona) => {
