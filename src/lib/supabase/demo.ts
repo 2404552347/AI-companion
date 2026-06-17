@@ -136,11 +136,10 @@ export const DEMO_DATA = {
 }
 
 export function isDemoMode(): boolean {
-  // Vercel / 生产环境 — demo 永不开启
-  if (process.env.VERCEL || process.env.NODE_ENV === 'production') return false
-  // 本地开发 — 仅当没有真实 Supabase URL 时启用
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) return true
-  if (process.env.NEXT_PUBLIC_SUPABASE_URL.includes('YOUR_PROJECT_ID')) return true
+  // 有真实 Supabase URL → 正式模式
+  if (process.env.NEXT_PUBLIC_SUPABASE_URL?.includes('supabase.co')) return false
+  // 显式要求 demo
   if (process.env.NEXT_PUBLIC_DEMO_MODE === 'true') return true
-  return false
+  // 其他情况（无 URL、占位符）→ demo
+  return true
 }

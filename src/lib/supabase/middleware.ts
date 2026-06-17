@@ -62,16 +62,20 @@ export async function updateSession(request: NextRequest) {
 
   // Redirect to onboarding if profile is not set up
   if (user && !request.nextUrl.pathname.startsWith('/onboarding') && !request.nextUrl.pathname.startsWith('/auth')) {
-    const { data: profile } = await supabase
-      .from('user_profiles')
-      .select('id')
-      .eq('user_id', user.id)
-      .single()
+    try {
+      const { data: profile } = await supabase
+        .from('user_profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .single()
 
-    if (!profile) {
-      const url = request.nextUrl.clone()
-      url.pathname = '/onboarding'
-      return NextResponse.redirect(url)
+      if (!profile) {
+        const url = request.nextUrl.clone()
+        url.pathname = '/onboarding'
+        return NextResponse.redirect(url)
+      }
+    } catch {
+      // 表不存在或查询失败，不做拦截
     }
   }
 
