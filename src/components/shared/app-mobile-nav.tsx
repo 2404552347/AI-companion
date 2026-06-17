@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Heart, MessageCircle, BookOpen, Clock, Target } from 'lucide-react'
+import { Heart, MessageCircle, BookOpen, Clock, Settings } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const navItems = [
@@ -10,7 +10,7 @@ const navItems = [
   { href: '/chat', label: '对话', icon: MessageCircle },
   { href: '/review', label: '复盘', icon: BookOpen },
   { href: '/timeline', label: '时间轴', icon: Clock },
-  { href: '/goals', label: '目标', icon: Target },
+  { href: '/settings', label: '设置', icon: Settings },
 ]
 
 export function AppMobileNav() {

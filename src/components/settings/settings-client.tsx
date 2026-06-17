@@ -114,8 +114,12 @@ export function SettingsClient({ profile, settings, personas, activePersona }: P
 
   return (
     <div className="mx-auto max-w-2xl space-y-6 px-4 py-6 md:py-10">
-      <section className="space-y-1">
+      <section className="flex items-center justify-between">
         <h1 className="font-serif-accent text-2xl md:text-3xl">设置</h1>
+        <Button variant="outline" size="sm" className="gap-1.5 text-muted-foreground" onClick={handleSignOut} disabled={isSigningOut}>
+          {isSigningOut ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogOut className="h-4 w-4" />}
+          退出
+        </Button>
       </section>
 
       {/* Profile Card */}
@@ -174,13 +178,7 @@ export function SettingsClient({ profile, settings, personas, activePersona }: P
         </CardContent>
       </Card>
 
-      {/* Sign Out */}
-      <Button variant="outline" className="w-full gap-2 text-muted-foreground" onClick={handleSignOut} disabled={isSigningOut}>
-        {isSigningOut ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogOut className="h-4 w-4" />}
-        退出登录
-      </Button>
-
-      <p className="text-center text-xs text-muted-foreground/50">AI Companion v0.2.0 — Phase 2</p>
+      <p className="text-center text-xs text-muted-foreground/50 pt-4">AI Companion v0.2.0 — Phase 2</p>
 
       {/* Persona Switch Dialog */}
       <Dialog open={personaOpen} onOpenChange={setPersonaOpen}>
