@@ -17,27 +17,39 @@ export const dynamic = 'force-dynamic'
 
 // ---- GET: URL 验证 ----
 export async function GET(request: Request) {
-  const url = new URL(request.url)
+  // 直接从原始 URL 字符串解析参数（完全避免 URLSearchParams 的 + → 空格问题）
+  const rawUrl = request.url
+  const queryStart = rawUrl.indexOf('?')
+  const queryStr = queryStart >= 0 ? rawUrl.substring(queryStart + 1) : ''
 
-  // 手动解析参数，避免 searchParams 把 base64 的 + 转成空格
-  function getRawParam(name: string): string | null {
-    const regex = new RegExp(`[?&]${name}=([^&]*)`)
-    const match = url.search.match(regex)
-    return match ? decodeURIComponent(match[1]) : null
+  function getRaw(name: string): string | null {
+    // 在 raw query string 中查找参数
+    const pairs = queryStr.split('&')
+    for (const pair of pairs) {
+      if (!pair.startsWith(name + '=')) continue
+      const rawValue = pair.substring(name.length + 1)
+      // 只做百分号解码，+ 保持原样
+      try {
+        return decodeURIComponent(rawValue)
+      } catch {
+        return rawValue
+      }
+    }
+    return null
   }
 
-  const msgSignature = getRawParam('msg_signature')
-  const timestamp = getRawParam('timestamp')
-  const nonce = getRawParam('nonce')
-  const echostr = getRawParam('echostr')
+  const msgSignature = getRaw('msg_signature')
+  const timestamp = getRaw('timestamp')
+  const nonce = getRaw('nonce')
+  const echostr = getRaw('echostr')
 
   if (!msgSignature || !timestamp || !nonce || !echostr) {
     return new NextResponse('missing params', { status: 400 })
   }
 
-  const token = process.env.WECOM_TOKEN ?? ''
-  const encodingAESKey = process.env.WECOM_ENCODING_AES_KEY ?? ''
-  const corpId = process.env.WECOM_CORP_ID ?? ''
+  const token = (process.env.WECOM_TOKEN ?? '').trim()
+  const encodingAESKey = (process.env.WECOM_ENCODING_AES_KEY ?? '').trim()
+  const corpId = (process.env.WECOM_CORP_ID ?? '').trim()
 
   if (!token || !encodingAESKey || !corpId) {
     return new NextResponse('wecom not configured', { status: 500 })
@@ -66,15 +78,21 @@ export async function POST(request: Request) {
     return new NextResponse('wecom not configured', { status: 500 })
   }
 
-  const url = new URL(request.url)
-  const getRawParam = (name: string) => {
-    const regex = new RegExp(`[?&]${name}=([^&]*)`)
-    const match = url.search.match(regex)
-    return match ? decodeURIComponent(match[1]) : null
+  const rawUrl = request.url
+  const queryStart = rawUrl.indexOf('?')
+  const queryStr = queryStart >= 0 ? rawUrl.substring(queryStart + 1) : ''
+  const getRaw = (name: string) => {
+    const pairs = queryStr.split('&')
+    for (const pair of pairs) {
+      if (!pair.startsWith(name + '=')) continue
+      const rawValue = pair.substring(name.length + 1)
+      try { return decodeURIComponent(rawValue) } catch { return rawValue }
+    }
+    return null
   }
-  const msgSignature = getRawParam('msg_signature')
-  const timestamp = getRawParam('timestamp')
-  const nonce = getRawParam('nonce')
+  const msgSignature = getRaw('msg_signature')
+  const timestamp = getRaw('timestamp')
+  const nonce = getRaw('nonce')
 
   if (!msgSignature || !timestamp || !nonce) {
     return new NextResponse('missing params', { status: 400 })
