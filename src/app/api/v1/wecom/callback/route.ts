@@ -62,10 +62,12 @@ export async function GET(request: Request) {
       return new NextResponse('signature fail', { status: 403 })
     }
 
-    // 2. 解密 echostr
+    // 2. 解密 echostr — 必须原样返回，不能带引号/换行/BOM
     const decrypted = decryptMsg(echostr, encodingAESKey, corpId)
-    console.log('WeCom URL verify success')
-    return new NextResponse(decrypted)
+    return new Response(decrypted, {
+      status: 200,
+      headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+    })
   } catch (err) {
     console.error('WeCom URL verify error:', err)
     return new NextResponse('verify failed', { status: 403 })
