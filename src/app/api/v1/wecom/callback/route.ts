@@ -17,11 +17,19 @@ export const dynamic = 'force-dynamic'
 
 // ---- GET: URL 验证 ----
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url)
-  const msgSignature = searchParams.get('msg_signature')
-  const timestamp = searchParams.get('timestamp')
-  const nonce = searchParams.get('nonce')
-  const echostr = searchParams.get('echostr')
+  const url = new URL(request.url)
+
+  // 手动解析参数，避免 searchParams 把 base64 的 + 转成空格
+  function getRawParam(name: string): string | null {
+    const regex = new RegExp(`[?&]${name}=([^&]*)`)
+    const match = url.search.match(regex)
+    return match ? decodeURIComponent(match[1]) : null
+  }
+
+  const msgSignature = getRawParam('msg_signature')
+  const timestamp = getRawParam('timestamp')
+  const nonce = getRawParam('nonce')
+  const echostr = getRawParam('echostr')
 
   if (!msgSignature || !timestamp || !nonce || !echostr) {
     return new NextResponse('missing params', { status: 400 })
@@ -58,10 +66,15 @@ export async function POST(request: Request) {
     return new NextResponse('wecom not configured', { status: 500 })
   }
 
-  const { searchParams } = new URL(request.url)
-  const msgSignature = searchParams.get('msg_signature')
-  const timestamp = searchParams.get('timestamp')
-  const nonce = searchParams.get('nonce')
+  const url = new URL(request.url)
+  const getRawParam = (name: string) => {
+    const regex = new RegExp(`[?&]${name}=([^&]*)`)
+    const match = url.search.match(regex)
+    return match ? decodeURIComponent(match[1]) : null
+  }
+  const msgSignature = getRawParam('msg_signature')
+  const timestamp = getRawParam('timestamp')
+  const nonce = getRawParam('nonce')
 
   if (!msgSignature || !timestamp || !nonce) {
     return new NextResponse('missing params', { status: 400 })
