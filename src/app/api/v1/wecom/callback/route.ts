@@ -36,7 +36,15 @@ export async function GET(request: Request) {
   }
 
   try {
+    // 1. 验证签名
+    if (!verifySignature(token, timestamp, nonce, echostr, msgSignature)) {
+      console.error('WeCom signature verification failed')
+      return new NextResponse('signature fail', { status: 403 })
+    }
+
+    // 2. 解密 echostr
     const decrypted = decryptMsg(echostr, encodingAESKey, corpId)
+    console.log('WeCom URL verify success')
     return new NextResponse(decrypted)
   } catch (err) {
     console.error('WeCom URL verify error:', err)
