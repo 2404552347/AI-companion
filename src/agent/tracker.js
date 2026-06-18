@@ -29,7 +29,7 @@ const SCRIPT_DIR = __dirname
 const CONFIG = {
   apiUrl: process.env.AI_COMPANION_API_URL || 'http://localhost:3000/api/v1/activity',
   token: process.env.AI_COMPANION_TOKEN || '',
-  userId: process.env.AI_COMPANION_USER_ID || 'ee851f6c-0403-4f32-a93d-89af108b2d77',
+  userId: process.env.AI_COMPANION_USER_ID || 'ebaf9369-2b26-4187-b288-558f8c659962',
   pollIntervalMs: 5000,
   batchIntervalMs: 60000,
   heartbeatIntervalMs: 30000,   // 每30秒在同一应用内记录心跳

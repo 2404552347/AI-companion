@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { Heart, Send, Smile, Loader2 } from 'lucide-react'
+import { Heart, Send, Smile, Loader2, Mic, MicOff } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
@@ -31,12 +31,52 @@ export function ChatClient({ initialMessages, persona, userProfile }: ChatClient
   )
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [isRecording, setIsRecording] = useState(false)
+  const [voiceSupported, setVoiceSupported] = useState(false)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const recognitionRef = useRef<any>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [])
+
+  // Setup speech recognition
+  useEffect(() => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+    if (SpeechRecognition) {
+      setVoiceSupported(true)
+      const recognition = new SpeechRecognition()
+      recognition.lang = 'zh-CN'
+      recognition.continuous = false
+      recognition.interimResults = true
+      recognition.maxAlternatives = 1
+
+      recognition.onresult = (event: any) => {
+        const transcript = Array.from(event.results)
+          .map((r: any) => r[0].transcript)
+          .join('')
+        setInput(transcript)
+      }
+
+      recognition.onerror = () => setIsRecording(false)
+      recognition.onend = () => setIsRecording(false)
+
+      recognitionRef.current = recognition
+    }
+  }, [])
+
+  const toggleRecording = () => {
+    if (!recognitionRef.current) return
+    if (isRecording) {
+      recognitionRef.current.stop()
+    } else {
+      setInput('')
+      recognitionRef.current.start()
+      setIsRecording(true)
+    }
+  }
 
   useEffect(() => {
     scrollToBottom()
@@ -221,13 +261,21 @@ export function ChatClient({ initialMessages, persona, userProfile }: ChatClient
       {/* Input */}
       <div className="border-t border-border/60 py-3">
         <div className="flex items-end gap-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-10 w-10 shrink-0 text-muted-foreground hover:text-foreground"
-          >
-            <Smile className="h-5 w-5" strokeWidth={1.5} />
-          </Button>
+          {voiceSupported && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleRecording}
+              className={cn(
+                'h-10 w-10 shrink-0 rounded-xl transition-all',
+                isRecording
+                  ? 'bg-red-500 text-white hover:bg-red-600 animate-pulse'
+                  : 'text-muted-foreground hover:text-foreground'
+              )}
+            >
+              {isRecording ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" strokeWidth={1.5} />}
+            </Button>
+          )}
 
           <Textarea
             ref={textareaRef}

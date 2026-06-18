@@ -16,24 +16,25 @@ export const dynamic = 'force-dynamic'
 //   - 用户 JWT (浏览器)
 //   - Service Role Key + user_id (本地追踪代理)
 export async function POST(request: Request) {
-  const supabase = await createServerSupabase()
   const body = await request.json()
   const { activities, device_info, user_id: explicitUserId } = body
 
   let userId: string | null = null
+  let supabase: Awaited<ReturnType<typeof createServerSupabase>>
 
-  // 方式1: 用户 JWT
-  const { data: { user } } = await supabase.auth.getUser()
-  if (user) {
-    userId = user.id
-  }
-
-  // 方式2: Service Role Key (本地追踪代理)
-  if (!userId && explicitUserId) {
-    const authHeader = request.headers.get('authorization') ?? ''
-    const token = authHeader.replace('Bearer ', '')
-    if (token === process.env.SUPABASE_SERVICE_ROLE_KEY) {
-      userId = explicitUserId
+  // 方式1: Service Role Key (本地追踪代理) — 绕过 RLS
+  const authHeader = request.headers.get('authorization') ?? ''
+  const token = authHeader.replace('Bearer ', '')
+  if (explicitUserId && token === process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    const { createServiceSupabase } = await import('@/lib/supabase/server')
+    supabase = await createServiceSupabase()
+    userId = explicitUserId
+  } else {
+    // 方式2: 用户 JWT (浏览器)
+    supabase = await createServerSupabase()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) {
+      userId = user.id
     }
   }
 
