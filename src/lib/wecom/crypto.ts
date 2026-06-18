@@ -87,7 +87,7 @@ export function verifySignature(
 ): boolean {
   const sorted = [token, timestamp, nonce, encrypted].sort().join('')
   const expected = crypto.createHash('sha1').update(sorted).digest('hex')
-  return expected === signature
+  return expected.toLowerCase() === signature.toLowerCase()
 }
 
 /** 解析解密后的 XML 消息，提取关键字段 */
