@@ -13,6 +13,7 @@ interface Message {
   role: 'user' | 'assistant'
   content: string
   isStreaming?: boolean
+  proactive?: boolean
 }
 
 interface ChatClientProps {
@@ -77,6 +78,51 @@ export function ChatClient({ initialMessages, persona, userProfile }: ChatClient
       setIsRecording(true)
     }
   }
+
+  // ---- 主动消息轮询 ----
+  const proactiveSeenRef = useRef<Set<string>>(new Set())
+  const [proactivePending, setProactivePending] = useState<Message | null>(null)
+
+  useEffect(() => {
+    let active = true
+    let timeout: ReturnType<typeof setTimeout>
+
+    async function poll() {
+      if (!active) return
+      try {
+        const res = await fetch('/api/v1/companion/proactive')
+        if (!res.ok || !active) return
+        const data = await res.json()
+        if (data.message && !proactiveSeenRef.current.has(data.message.id)) {
+          proactiveSeenRef.current.add(data.message.id)
+          const msg: Message = {
+            id: data.message.id,
+            role: 'assistant',
+            content: data.message.content,
+            proactive: true,
+          }
+          setProactivePending(msg)
+        }
+      } catch {
+        // 静默失败
+      }
+      if (active) timeout = setTimeout(poll, 45000)
+    }
+
+    // 首次延迟 15 秒再开始轮询
+    timeout = setTimeout(poll, 15000)
+    return () => { active = false; clearTimeout(timeout) }
+  }, [])
+
+  // 展示主动消息（延迟一点让它更自然）
+  useEffect(() => {
+    if (!proactivePending) return
+    const timer = setTimeout(() => {
+      setMessages((prev) => [...prev, proactivePending])
+      setProactivePending(null)
+    }, 800)
+    return () => clearTimeout(timer)
+  }, [proactivePending])
 
   useEffect(() => {
     scrollToBottom()
@@ -230,9 +276,16 @@ export function ChatClient({ initialMessages, persona, userProfile }: ChatClient
                 'max-w-[80%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed',
                 msg.role === 'user'
                   ? 'bg-primary text-primary-foreground'
-                  : 'bg-muted text-foreground'
+                  : msg.proactive
+                    ? 'bg-accent-gold/10 border border-accent-gold/20 text-foreground'
+                    : 'bg-muted text-foreground'
               )}
             >
+              {msg.proactive && (
+                <p className="mb-1 text-[10px] font-medium text-accent-gold/70 uppercase tracking-wide">
+                  ✨ 主动关心
+                </p>
+              )}
               {msg.content ? (
                 <p className="whitespace-pre-wrap">
                   {msg.content}
