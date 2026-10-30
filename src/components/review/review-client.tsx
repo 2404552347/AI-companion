@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { format } from 'date-fns'
+import { format, parseISO } from 'date-fns'
 import { zhCN } from 'date-fns/locale'
 import {
   CheckCircle,
@@ -107,7 +107,7 @@ export function ReviewClient({ initialLog, today }: ReviewClientProps) {
     }
   }
 
-  const todayFormatted = format(new Date(), 'M月d日 EEEE', { locale: zhCN })
+  const todayFormatted = format(parseISO(today), 'M月d日 EEEE', { locale: zhCN })
 
   return (
     <div className="mx-auto max-w-2xl space-y-6 px-4 py-6 md:py-10">

@@ -21,7 +21,7 @@ export default async function ChatPage() {
 
   const { data: conversations } = await supabase
     .from('conversations').select('*').eq('user_id', user.id)
-    .order('created_at', { ascending: true }).limit(30)
+    .order('created_at', { ascending: false }).limit(30)
 
   const { data: settings } = await supabase
     .from('user_settings').select('persona_id').eq('user_id', user.id).single()
@@ -37,7 +37,7 @@ export default async function ChatPage() {
 
   return (
     <ChatClient
-      initialMessages={(conversations ?? []) as Conversation[]}
+      initialMessages={((conversations ?? []) as Conversation[]).reverse()}
       persona={persona}
       userProfile={profile as { nickname: string } | null}
     />

@@ -173,6 +173,7 @@ export function ChatClient({ initialMessages, persona, userProfile }: ChatClient
 
       const decoder = new TextDecoder()
       let buffer = ''
+      let eventType = ''
 
       while (true) {
         const { done, value } = await reader.read()
@@ -183,21 +184,32 @@ export function ChatClient({ initialMessages, persona, userProfile }: ChatClient
         buffer = lines.pop() ?? ''
 
         for (const line of lines) {
-          if (line.startsWith('data: ')) {
+          if (line.startsWith('event: ')) {
+            eventType = line.slice(7)
+          } else if (line.startsWith('data: ')) {
+            let data: { delta?: string; message?: string }
             try {
-              const data = JSON.parse(line.slice(6))
-              if (data.delta) {
-                setMessages((prev) =>
-                  prev.map((msg) =>
-                    msg.id === aiMsgId
-                      ? { ...msg, content: msg.content + data.delta }
-                      : msg
-                  )
-                )
-              }
+              data = JSON.parse(line.slice(6))
             } catch {
               // Skip malformed JSON
+              continue
             }
+
+            if (eventType === 'error') {
+              throw new Error(data.message ?? 'Chat stream failed')
+            }
+
+            if (data.delta) {
+              setMessages((prev) =>
+                prev.map((msg) =>
+                  msg.id === aiMsgId
+                    ? { ...msg, content: msg.content + data.delta }
+                    : msg
+                )
+              )
+            }
+          } else if (line === '') {
+            eventType = ''
           }
         }
       }

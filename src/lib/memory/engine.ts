@@ -73,7 +73,7 @@ export async function extractAndStoreMemories({
       const normalized = mem.content.slice(0, 50).replace(/\s+/g, '')
       const { data: existing } = await supabase
         .from('memories')
-        .select('id, importance')
+        .select('id, importance, content')
         .eq('user_id', userId)
         .eq('category', mem.category)
         .eq('is_active', true)

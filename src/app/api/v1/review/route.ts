@@ -7,6 +7,7 @@ import { NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/supabase/server'
 import { getOpenAI, FAST_MODEL } from '@/lib/openai/client'
 import { extractAndStoreMemories } from '@/lib/memory/engine'
+import { getDateStringInTimeZone } from '@/lib/date'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -21,7 +22,12 @@ export async function GET(request: Request) {
   }
 
   const { searchParams } = new URL(request.url)
-  const date = searchParams.get('date') ?? new Date().toISOString().split('T')[0]
+  let date = searchParams.get('date')
+  if (!date) {
+    const { data: profile } = await supabase
+      .from('user_profiles').select('timezone').eq('user_id', user.id).single()
+    date = getDateStringInTimeZone(new Date(), profile?.timezone)
+  }
 
   const { data: log } = await supabase
     .from('daily_logs')
