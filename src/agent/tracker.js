@@ -304,18 +304,21 @@ async function poll() {
   // --- 状态转换 ---
   if (isIdle) {
     // 进入空闲
-    if (current && current.activity_type !== 'idle') {
-      flushCurrentActivity(nowISO, 'idle')
+    if (!current || current.activity_type !== 'idle') {
+      if (current) flushCurrentActivity(nowISO, 'idle')
+      current = {
+        activity_type: 'idle',
+        app_name: null, app_bundle: null, window_title: null, url: null,
+        activity_score: score,
+        is_productive: false, category: 'idle',
+        metadata: { idle_sec: idleSec },
+      }
+      currentStartedAt = nowISO
       log(`💤 进入空闲 (${idleSec}s)`, 'idle')
+    } else {
+      current.activity_score = score
+      current.metadata.idle_sec = idleSec
     }
-    current = {
-      activity_type: 'idle',
-      app_name: null, app_bundle: null, window_title: null, url: null,
-      activity_score: score,
-      is_productive: false, category: 'idle',
-      metadata: { idle_sec: idleSec },
-    }
-    currentStartedAt = nowISO
   } else if (app) {
     const category = classifyApp(app.app_name)
     const productive = isProductive(app.app_name, category)
