@@ -148,20 +148,43 @@ export async function POST(request: Request) {
     )
   }
 
-  // Create growth event if this is a new log
+  // Create or update the growth event for this review
   if (completed && completed.length > 0) {
-    await supabase.from('growth_events').upsert(
-      {
-        user_id: user.id,
-        event_type: 'achievement',
-        title: `完成了今日复盘`,
-        description: `完成事项: ${completed.slice(0, 3).join('、')}`,
-        emotion_tag: mood_score && mood_score >= 4 ? 'happy' : 'neutral',
-        related_log_id: log?.id,
-        date,
-      },
-      { onConflict: 'user_id,date,event_type' }
-    )
+    const growthEvent = {
+      user_id: user.id,
+      event_type: 'achievement',
+      title: `完成了今日复盘`,
+      description: `完成事项: ${completed.slice(0, 3).join('、')}`,
+      emotion_tag: mood_score && mood_score >= 4 ? 'happy' : 'neutral',
+      related_log_id: log?.id,
+      date,
+    }
+    const { data: existingEvent, error: findEventError } = await supabase
+      .from('growth_events')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('date', date)
+      .eq('event_type', 'achievement')
+      .limit(1)
+      .maybeSingle()
+
+    if (findEventError) {
+      return NextResponse.json(
+        { error: { code: 'database_error', message: '保存成长事件失败: ' + findEventError.message } },
+        { status: 500 }
+      )
+    }
+
+    const { error: growthEventError } = existingEvent
+      ? await supabase.from('growth_events').update(growthEvent).eq('id', existingEvent.id)
+      : await supabase.from('growth_events').insert(growthEvent)
+
+    if (growthEventError) {
+      return NextResponse.json(
+        { error: { code: 'database_error', message: '保存成长事件失败: ' + growthEventError.message } },
+        { status: 500 }
+      )
+    }
   }
 
   // Extract memories from review
